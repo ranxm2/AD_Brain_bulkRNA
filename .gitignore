@@ -1,0 +1,9 @@
+data/
+*.gtf
+*.txt
+*.bam
+*.sam
+*.fastq
+*.gz
+*.DS_Store
+
