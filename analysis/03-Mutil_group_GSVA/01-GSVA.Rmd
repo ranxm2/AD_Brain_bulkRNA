@@ -132,7 +132,7 @@ p <-ggplot(pcaData, aes(PC1, PC2, color=group)) +
   # scale_color_manual(values = assigned_colors) +
   ggrepel::geom_text_repel(aes(label = name), color = "black")
 
-
+print(p)
 ggsave("./results/01-Sample_info/01_sample_PCA_plot.pdf", p,width = 8, height = 6, units = "in", dpi = 300)
 ggsave("./results/01-Sample_info/01_sample_PCA_plot.png", p,width = 8, height = 6, units = "in", dpi = 300)
   
