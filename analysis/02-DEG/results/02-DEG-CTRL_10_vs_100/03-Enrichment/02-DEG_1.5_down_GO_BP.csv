@@ -1,0 +1,7 @@
+"query","significant","p_value","term_size","query_size","intersection_size","precision","recall","term_id","source","term_name","effective_domain_size","source_order","evidence_codes","intersection","intersection_gene","intersection_gene_id","term"
+"query_1",TRUE,0.0338249278736232,2,4,1,0.25,0.5,"GO:0120302","GO:BP","background adaptation",21017,19606,"IEA","GNAT2","GNAT2","ENSG00000134183","GO:BP - background adaptation"
+"query_1",TRUE,0.0338249278736232,3,4,1,0.25,0.333333333333333,"GO:0097719","GO:BP","neural tissue regeneration",21017,18745,"IEA","GNAT2","GNAT2","ENSG00000134183","GO:BP - neural tissue regeneration"
+"query_1",TRUE,0.0338249278736232,3,4,1,0.25,0.333333333333333,"GO:1904390","GO:BP","cone retinal bipolar cell differentiation",21017,23775,"IEA","GNAT2","GNAT2","ENSG00000134183","GO:BP - cone retinal bipolar cell differentiation"
+"query_1",TRUE,0.0338249278736232,1,4,1,0.25,1,"GO:0048877","GO:BP","homeostasis of number of retina cells",21017,13118,"IEA","GNAT2","GNAT2","ENSG00000134183","GO:BP - homeostasis of number of retina cells"
+"query_1",TRUE,0.0360773478490482,4,4,1,0.25,0.25,"GO:0030382","GO:BP","sperm mitochondrion organization",21017,6784,"IEA","MFSD14A","MFSD14A","ENSG00000156875","GO:BP - sperm mitochondrion organization"
+"query_1",TRUE,0.0450902473836786,6,4,1,0.25,0.166666666666667,"GO:0150103","GO:BP","reactive gliosis",21017,20142,"IEA","GNAT2","GNAT2","ENSG00000134183","GO:BP - reactive gliosis"

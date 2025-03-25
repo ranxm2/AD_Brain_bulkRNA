@@ -27,7 +27,7 @@ knitr::opts_chunk$set(
   # echo = FALSE,
   warning = FALSE,
   message = FALSE,
-  fig.path = "./results/Analysis_figure/"
+  fig.path = "./results/02-DEG-V_0/Analysis_figure/"
 )
 
 theme_set(theme_bw() + theme(legend.position = "bottom"))
@@ -316,6 +316,9 @@ pathway_list <- read.csv(here::here("data", "ref", "focus-pathway_2024_10_03.csv
 # 
 # }
 
+box_plot_folder<- file.path(result_folder,"04-GSVA","Boxplot")
+# create the folder
+dir.create(box_plot_folder, showWarnings = FALSE)
 
 # plot for the focus pathway
 for (i in 1:2){
