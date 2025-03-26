@@ -23,7 +23,7 @@ library(knitr)
 set.seed(2024)
 
 knitr::opts_chunk$set(
-  # echo = FALSE,
+  echo = FALSE,
   warning = FALSE,
   message = FALSE,
   fig.path = "./results/Analysis_figure/"
@@ -50,7 +50,7 @@ source(here::here("source", "DEG_functions.R"))
 \newpage
 
 # 1. Read the count data
-In this section, we will read the clean count data from the synaptosomes_bulkRNA folder.  We will read the data and merge them into a single table. The final table will be stored in `../dataresults/bulkRNA_counts_clean.csv`.
+In this section, we will read the clean count data from the synaptosomes_bulkRNA folder.  We will read the data and merge them into a single table. 
 
 ```{r load_bulkRNA_data}
 input_count <- read.csv(here::here("data", "bulkRNA",
@@ -91,9 +91,6 @@ gene_name_mapping<- readRDS(here::here("data","ref" ,"gene_name_mapping.rds"))
 ```
 
 
-# 2. Differential expression analysis
-
-In this section, we will perform differential expression analysis using DESeq2. We will compare the 22q vs Control in the vehicle condition. The results will be stored in `results/02-DEG-V_10/DESeq2_results.csv`.
 
 ```{r DESeq2_analysis}
 # Init the result folder structure for the result
@@ -105,7 +102,7 @@ result_folder = result_folder_all
 
 \newpage
 
-# 3. Visualization for reuslt
+# 2. Visualization for reuslt
 
 ## (1) Sample information - PCA plot
 
@@ -160,7 +157,7 @@ ggsave("./results/01-Sample_info/02_sample_distance_heatmap.png",
 
 
 
-# 4. GSVA analysis
+# 3. GSVA analysis
 
 ```{r GSVA_analysis, fig.width=12, fig.height=6}
 # # The following code is used to generate the GSVA matrix , only need to run once
