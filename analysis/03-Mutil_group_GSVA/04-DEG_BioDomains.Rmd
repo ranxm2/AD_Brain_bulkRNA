@@ -213,14 +213,35 @@ result_CTRL_Drug <- result_CTRL_Drug %>% mutate(CTRL_Drug_NES = NES, CTRL_Drug_p
 
 # 5. Load the GSVA analysis
 
+```{r make_reference_for_GSVA}
+# 
+# # Install if not already
+# if (!requireNamespace("msigdbr", quietly = TRUE)) {
+#   install.packages("msigdbr")
+# }
+# library(msigdbr)
+# 
+# # Load all human GO sets (C5 category)
+# msig_go <- msigdbr(species = "Homo sapiens", category = "C5")
+# 
+# # Extract and keep unique pairs of gene set name and GO ID
+# go_pairs <- unique(msig_go[, c("gs_cat","gs_subcat","gs_name", "gs_exact_source")])
+# 
+# 
+# # save the misi_go to data/ref folder with here::
+# write.csv(go_pairs, here::here("data","ref","GO_reference_2025_04_02.csv"))
+
+```
+
+
+
+
+
 ```{r}
 # load the GSVA analysis result
-
-
 result_GSVA <- read.csv(here::here("analysis", "03-Mutil_group_GSVA", "results","02-GSVA","01_GSVA_matrix.csv"), row.names = 1)
 
 # group level average GSVA score
-
 group_list <- c("AD_Veh_0", "AD_Veh_10", "CTRL_Veh_0", "CTRL_Veh_10")
 condition_list_label <- condition_list %>% filter(group %in% group_list)
 
@@ -229,6 +250,8 @@ result_GSVA <- result_GSVA [, rownames(condition_list_label)]
 
 result_GSVA_group <- tibble()
 row.names(result_GSVA) <- row.names(result_GSVA)
+
+
 
 
 
@@ -261,49 +284,93 @@ for (grp in group_list) {
 }
 
 
-# View the result
-
-result_GSVA_group<-as.data.frame(result_GSVA_group)
-
-result_GSVA_group$ID <- rownames(result_GSVA_group)
-result_GSVA_group$ID <- gsub("_", " ", result_GSVA_group$ID)
-
-# turn id to be lower case
-result_GSVA_group$ID <- tolower(result_GSVA_group$ID)
-
-# delete the GOBP and GOCC in the ID
-result_GSVA_group$ID <- gsub("gobp ", "", result_GSVA_group$ID)
-result_GSVA_group$ID <- gsub("gocc ", "", result_GSVA_group$ID)
 
 
-ref_BioDomain <- read.csv(here::here("data", "ref", "BioDomain_Reference_2025_04_01.csv"))
+# # Match based on the GO term text
+# result_GSVA_group <-as.data.frame(result_GSVA_group)
+# result_GSVA_group$ID <- rownames(result_GSVA_group)
+# result_GSVA_group$ID <- gsub("_", " ", result_GSVA_group$ID)
+# 
+# # turn id to be lower case
+# result_GSVA_group$ID <- tolower(result_GSVA_group$ID)
+# result_GSVA_group$ID <- gsub("gobp ", "", result_GSVA_group$ID)
+# result_GSVA_group$ID <- gsub("gocc ", "", result_GSVA_group$ID)
+# 
+# ref_BioDomain <- read.csv(here::here("data", "ref", "BioDomain_Reference_2025_04_01.csv"))
+# ref_BioDomain$ID <- ref_BioDomain$GOterm_Name
+# ref_BioDomain$ID <- tolower(ref_BioDomain$ID)
+# 
+# df_BioDomain <- left_join(ref_BioDomain,result_GSVA_group, by =  "ID")
 
-ref_BioDomain$ID <- ref_BioDomain$GOterm_Name
-ref_BioDomain$ID <- tolower(ref_BioDomain$ID)
+
+# result_GSVA_group <- merge(result_GSVA_group, go_ref, by.x = "row.names", by.y = "row.names", all.x = TRUE)
+# go_ref <- read.csv(here::here("data","ref","GO_reference_2025_04_02.csv"), row.names = 1)
+# rownames(go_ref) <- go_ref$gs_name 
+
 
 
 # merge the BioDomain with the GSVA result
+result_GSVA_group_df <- as.data.frame(result_GSVA_group)
+# result_GSVA_group_df <- left_join(result_GSVA_group_df ,ref_pairs , by.x =  "ID", by.y = "gs_name", all.x = TRUE)
 
-df_BioDomain <- left_join(ref_BioDomain,result_GSVA_group, by =  "ID")
 
+
+go_ref <- read.csv(here::here("data","ref","GO_reference_2025_04_02.csv"), row.names = 1)
+ref_BioDomain <- read.csv(here::here("data", "ref", "BioDomain_Reference_2025_04_01.csv"))
+
+
+# check if the GO_ID is unique in the ref_BioDomain
+length(unique(ref_BioDomain$GO_ID)) == nrow(ref_BioDomain)
+
+
+ref_BioDomain_go <- merge(
+  go_ref,
+  ref_BioDomain,
+  by.x = "gs_exact_source",
+  by.y = "GO_ID",
+  all.x = TRUE
+)
+
+dim(ref_BioDomain_go)
+head(ref_BioDomain_go)
+
+# chcek the NA in the Biodomain
+sum(is.na(ref_BioDomain_go$Biodomain))
+
+# fill the NA with "Unknown"
+ref_BioDomain_go$Biodomain[is.na(ref_BioDomain_go$Biodomain)] <- "Unknown"
+ref_pairs <- ref_BioDomain_go[, c("gs_name", "Biodomain")]
+
+
+result_GSVA_group_df$ID <- rownames(result_GSVA_group_df)
+result_GSVA_group_df <- left_join(
+  result_GSVA_group_df,
+  ref_pairs,
+  by = c("ID" = "gs_name")
+)
+# fill the NA with "Unknown"
+result_GSVA_group_df$Biodomain[is.na(result_GSVA_group_df$Biodomain)] <- "Unknown"
 
 ```
 
 ## (1) Ridge plot for GSVA score
-```{r BioDomain_Ridge, fig.width=18, fig.height=16}
+```{r BioDomain_Ridge,fig.width=24, fig.height=20}
 
 library(tidyverse)
 library(ggridges)
 library(ggdist)
 
 # Reshape data to long format
-df_long <- df_BioDomain %>%
+df_long <- result_GSVA_group_df %>%
   pivot_longer(
     cols = c( CTRL_Veh_0, CTRL_Veh_10,AD_Veh_0, AD_Veh_10),
     names_to = "Group",
     values_to = "GSVA_Score"
   ) %>%
-  filter(!is.na(GSVA_Score))
+  filter(!is.na(GSVA_Score)) %>%
+  filter(Biodomain != "Unknown")
+
+
 
 
 df_long$group <- fct_recode(df_long$Group,
@@ -330,14 +397,15 @@ p <- ggplot(df_long, aes(x = GSVA_Score, y = group, fill = group)) +
 
 print(p)
 
-ggsave(file.path(result_folder, "GSVA_Ridge_plot.png"), p, width = 18, height = 16, units = "in", dpi = 300)
-ggsave(file.path(result_folder, "GSVA_Ridge_plot.pdf"), p, width = 18, height = 16, units = "in", dpi = 300)
+
+ggsave(file.path(result_folder, "GSVA_Ridge_plot_v2.png"), p, width = 24, height = 20, units = "in", dpi = 300)
+ggsave(file.path(result_folder, "GSVA_Ridge_plot_v2.pdf"), p, width = 24, height = 20, units = "in", dpi = 300)
 
 ```
 \newpage
 ## (2) Raincloud plot for GSVA score
 
-```{r BioDomain_Cloud, fig.width=18, fig.height=16}
+```{r BioDomain_Cloud, fig.width=24, fig.height=20}
 
 
 ## (2) Raincloud plot for GSVA score (suppressing verbose output)
@@ -357,7 +425,7 @@ suppressWarnings({
     geom_jitter(
       aes(color = group),
       width = 0.001,
-      size = 1.2,
+      size = 0.8,
       alpha = 0.4
     ) +
     facet_wrap(~ Biodomain, scales = "free_y") +
@@ -378,8 +446,8 @@ suppressWarnings({
 
 print(p)
 
-ggsave(file.path(result_folder, "GSVA_cloud_plot.png"),  width = 18, height = 16, units = "in", dpi = 300)
-ggsave(file.path(result_folder, "GSVA_cloud_plot.pdf"),  width = 18, height = 16, units = "in", dpi = 300)
+ggsave(file.path(result_folder, "GSVA_cloud_plot_v2.png"),  width = 24, height = 20, units = "in", dpi = 300)
+ggsave(file.path(result_folder, "GSVA_cloud_plot_v2.pdf"),  width = 24, height = 20, units = "in", dpi = 300)
 
 
 ```
@@ -387,7 +455,7 @@ ggsave(file.path(result_folder, "GSVA_cloud_plot.pdf"),  width = 18, height = 16
 \newpage
 ## (3) Rug and density plot for GSVA score
 
-```{r BioDomain_Rug, fig.width=18, fig.height=16}
+```{r BioDomain_Rug, fig.width=24, fig.height=20}
 ## (2) Ridge + Rug plot for GSVA score
 
 library(ggridges)
@@ -410,8 +478,8 @@ p <- ggplot(df_long, aes(x = GSVA_Score, y = group, fill = group)) +
 
 print(p)
 
-ggsave(file.path(result_folder, "GSVA_ridge_rug_plot.png"), width = 18, height = 16, units = "in", dpi = 300)
-ggsave(file.path(result_folder, "GSVA_ridge_rug_plot.pdf"), width = 18, height = 16, units = "in", dpi = 300)
+ggsave(file.path(result_folder, "GSVA_ridge_rug_plot_v2.png"), width = 24, height = 20, units = "in", dpi = 300)
+ggsave(file.path(result_folder, "GSVA_ridge_rug_plot_v2.pdf"), width = 24, height = 20, units = "in", dpi = 300)
 
 
 
