@@ -286,11 +286,6 @@ ref_BioDomain$ID <- tolower(ref_BioDomain$ID)
 
 df_BioDomain <- left_join(ref_BioDomain,result_GSVA_group, by =  "ID")
 
-dim(df_BioDomain)
-
-head(df_BioDomain)
-head(result_GSVA_group)
-
 
 ```
 
@@ -327,7 +322,7 @@ p <- ggplot(df_long, aes(x = GSVA_Score, y = group, fill = group)) +
   facet_wrap(~ Biodomain, scales = "free_y") +
   labs(title = "Ridge Plot of GSVA Scores by Biodomain and Group",
        x = "GSVA Score", y = "Group") +
-  theme_minimal() +
+  theme_bw() +
   theme(legend.position = "none",
         strip.text = element_text(size = 12),
         axis.text.x = element_text(size = 10),
@@ -343,37 +338,44 @@ ggsave(file.path(result_folder, "GSVA_Ridge_plot.pdf"), p, width = 18, height = 
 ## (2) Raincloud plot for GSVA score
 
 ```{r BioDomain_Cloud, fig.width=18, fig.height=16}
-p<-ggplot(df_long, aes(x = GSVA_Score, y = group, fill = group)) +
-  stat_halfeye(
-    adjust = 0.6,
-    justification = -0.3,
-    .width = 0,
-    point_colour = NA
-  ) +
-  geom_boxplot(
-    width = 0.15,
-    outlier.shape = NA,
-    alpha = 0.4
-  ) +
-  geom_jitter(
-    aes(color = group),
-    width = 0.001,
-    size = 1.2,
-    alpha = 0.4
-  ) +
-  facet_wrap(~ Biodomain, scales = "free_y") +
-  labs(
-    title = "GSVA Distribution per Biodomain (Raincloud Plot)",
-    x = "GSVA Score", y = NULL
-  ) +
-  theme_bw()
-  theme(
-    legend.position = "none",
-    strip.text = element_text(size = 13),
-    axis.text.y = element_text(size = 11),
-    axis.text.x = element_text(size = 10)
-  )
-  
+
+
+## (2) Raincloud plot for GSVA score (suppressing verbose output)
+suppressWarnings({
+  p <- ggplot(df_long, aes(x = GSVA_Score, y = group, fill = group)) +
+    stat_halfeye(
+      adjust = 0.6,
+      justification = -0.3,
+      .width = 0,
+      point_colour = NA
+    ) +
+    geom_boxplot(
+      width = 0.15,
+      outlier.shape = NA,
+      alpha = 0.4
+    ) +
+    geom_jitter(
+      aes(color = group),
+      width = 0.001,
+      size = 1.2,
+      alpha = 0.4
+    ) +
+    facet_wrap(~ Biodomain, scales = "free_y") +
+    labs(
+      title = "GSVA Distribution per Biodomain (Raincloud Plot)",
+      x = "GSVA Score", y = NULL
+    ) +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      strip.text = element_text(size = 13),
+      axis.text.y = element_text(size = 11),
+      axis.text.x = element_text(size = 10)
+    )
+})
+
+
+
 print(p)
 
 ggsave(file.path(result_folder, "GSVA_cloud_plot.png"),  width = 18, height = 16, units = "in", dpi = 300)
@@ -382,7 +384,38 @@ ggsave(file.path(result_folder, "GSVA_cloud_plot.pdf"),  width = 18, height = 16
 
 ```
 
+\newpage
+## (3) Rug and density plot for GSVA score
 
+```{r BioDomain_Rug, fig.width=18, fig.height=16}
+## (2) Ridge + Rug plot for GSVA score
+
+library(ggridges)
+
+p <- ggplot(df_long, aes(x = GSVA_Score, y = group, fill = group)) +
+  geom_density_ridges(scale = 1.2, alpha = 0.6, color = "white") +
+  geom_rug(aes(color = group), sides = "b", alpha = 0.4, size = 0.5) +
+  facet_wrap(~ Biodomain, scales = "free_y") +
+  labs(
+    title = "GSVA Distribution per Biodomain (Ridge + Rug Plot)",
+    x = "GSVA Score", y = NULL
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(size = 13),
+    axis.text.y = element_text(size = 11),
+    axis.text.x = element_text(size = 10)
+  )
+
+print(p)
+
+ggsave(file.path(result_folder, "GSVA_ridge_rug_plot.png"), width = 18, height = 16, units = "in", dpi = 300)
+ggsave(file.path(result_folder, "GSVA_ridge_rug_plot.pdf"), width = 18, height = 16, units = "in", dpi = 300)
+
+
+
+```
 \newpage
 # Session information
 ```{r}
