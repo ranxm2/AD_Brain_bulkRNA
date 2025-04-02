@@ -615,3 +615,109 @@ plot_gsva_boxplot_mutil_5<-  function(gsva_matrix, condition_list_label, pathway
 
 
 
+
+plot_gsva_boxplot_mutil_4<-  function(gsva_matrix, condition_list_label, pathway_name,
+                                      figure_folder, file_name, 
+                                      fig.height = 6, fig.width = 4, save = TRUE,
+                                      reference_group_1, compare_group_1,
+                                      reference_group_2, compare_group_2,
+                                      reference_group_3, compare_group_3,
+                                      reference_group_4, compare_group_4,
+                                      reference_group_5, compare_group_5){
+  
+  # Sample list sub
+  sample_info <- condition_list_label %>%
+    mutate(sample = rownames(.)) 
+  
+  # Convert gsva_matrix to a data frame and reshape
+  plot_df <- as.data.frame(gsva_matrix) %>%
+    rownames_to_column(var = "pathway") %>%
+    filter(pathway == pathway_name) %>%  # Select the specific pathway
+    pivot_longer(cols = -pathway, names_to = "sample", values_to = "GSVA_score") %>%
+    dplyr::select(-pathway)  %>% 
+    filter(sample %in% sample_info$sample)  %>%
+    left_join(sample_info, by = "sample") 
+  
+  # Ensure colors are mapped to exact group names
+  # color_palette <- setNames(c("#10d5da", "#fe867f"), c(reference_group, compare_group))
+  
+  # Process pathway name: remove first part, capitalize first letter, replace underscores with spaces
+  formatted_title <- pathway_name %>%
+    str_remove("^[^_]+_") %>%  # Remove everything before the first underscore
+    str_to_lower() %>%  # Convert everything to lowercase
+    str_replace_all("_", " ") %>%  # Replace underscores with spaces
+    str_to_sentence()  # Capitalize first letter
+  
+  # sub the rna with RNA in formatted_title
+  formatted_title <- str_replace_all(formatted_title, "rna", "RNA")
+  
+  score_max <- max(plot_df$GSVA_score)
+  score_scale <- abs(max(plot_df$GSVA_score) - min(plot_df$GSVA_score))*0.5
+  
+  
+  
+  # Create the box plot with scatter overlay
+  p<-ggplot(plot_df, aes(x = group, y = GSVA_score)) +
+    geom_boxplot(aes(fill = group), alpha = 0.9, outlier.shape = NA, color = "black") +  # Box plot with fill color
+    geom_jitter(aes(fill = group), shape = 21, width = 0.2, size = 3, alpha = 0.9, color = "black") +  # Scatter points with fill color
+    # stat_summary(fun = mean, geom = "point", shape = 18, size = 4, color = "black") +  # Mean point
+    
+    geom_signif(comparisons = list(c(reference_group_1, compare_group_1),
+                                   c(reference_group_2, compare_group_2)),
+                test = "t.test",
+                map_signif_level = TRUE,
+                y_position = c(score_max + 0.25*score_scale, score_max + 0.2*score_scale)) +
+    
+    geom_signif(comparisons = list(c(reference_group_3, compare_group_3)),
+                test = "t.test",
+                map_signif_level = TRUE,
+                y_position = c(score_max + 0.5*score_scale, score_max + 0.4*score_scale)) + 
+  
+
+  geom_signif(comparisons = list(  c(reference_group_4, compare_group_4)),
+              test = "t.test",
+              map_signif_level = TRUE,
+              y_position = c(score_max + 0.75*score_scale, score_max + 0.4*score_scale))+
+    
+    
+    geom_signif(comparisons = list(  c(reference_group_5, compare_group_5)),
+                test = "t.test",
+                map_signif_level = TRUE,
+                y_position = c(score_max + 1*score_scale, score_max + 0.4*score_scale))+
+  
+    # scale_fill_manual(values = color_palette) +  # Apply custom colors to boxes & scatter dots
+   theme_classic(base_family = "Arial") +  # Use Arial font for all text))
+    labs(title = "",  # Use formatted pathway name
+         x = "",  # Remove x-axis label
+         y = paste0(formatted_title, "\n(GSVA Score)")) +
+    theme(
+      panel.background = element_rect(fill = "transparent", color = NA),  # panel bg
+      plot.background = element_rect(fill = "transparent", color = NA),   # plot bg
+      legend.background = element_rect(fill = "transparent", color = NA), # legend bg
+      legend.box.background = element_rect(fill = "transparent", color = NA),
+      text = element_text(size = 14, family = "Arial"),
+      plot.title = element_text(hjust = 0.5, size = 14),
+      axis.text.x = element_text(size = 16, color = "black", angle = 45, vjust = 1, hjust = 1),
+      axis.text.y = element_text(size = 14, color = "black"),
+      axis.title.x = element_text(size = 14, color = "black", vjust = -1),
+      axis.title.y = element_text(size = 14, color = "black"),
+      legend.position = "none"
+    )
+  
+    
+  if (save){
+    ggsave(file.path(figure_folder, paste0(file_name, ".png")), p,
+           width = fig.width, height = fig.height, units = "in", dpi = 300, bg = "transparent")
+    ggsave(file.path(figure_folder, paste0(file_name, ".pdf")), p,
+           width = fig.width, height = fig.height, units = "in", bg = "transparent")
+  }
+  
+    
+  return(p)
+  
+}
+
+
+
+
+
