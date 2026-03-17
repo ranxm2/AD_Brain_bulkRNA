@@ -262,6 +262,26 @@ for (index in 1:length(gene_list  )){
 
 ```
 
+```{r}
+# check the CCKBR row
+print(normalized_count["CCKBR", ])
+
+# show input_count with gene == "CCKBR"
+print(input_count %>% filter(gene == "CCKBR"))
+
+
+# show the raw count for all gene in the gene list
+for (index in 1:length(gene_list )){
+  plot_gene<- gene_list [index]
+  
+  print(paste0("gene_", plot_gene))
+  print(input_count %>% filter(gene == plot_gene))
+  
+  print(paste0("normalized count for gene_", plot_gene))
+  
+  print(normalized_count[plot_gene, ])
+}
+```
 
 
 \newpage
